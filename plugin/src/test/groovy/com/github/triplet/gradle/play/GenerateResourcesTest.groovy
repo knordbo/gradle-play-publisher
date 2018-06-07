@@ -325,4 +325,34 @@ class GenerateResourcesTest {
         assertEquals(originalTitle, processedTitle)
     }
 
+    @Test
+    void multiSourceMerge() {
+        def project = TestHelper.evaluatableProject()
+        def originalTitle = new File(TestHelper.FIXTURE_WORKING_DIR,
+                'src/main/play/en-US/listing/title').text
+        def originalFulldescription = new File(
+                'src/test/fixtures/secondary_source/play/en-US/listing/fulldescription').text
+
+        project.android {
+            sourceSets {
+                main {
+                    res.srcDirs += ['../secondary_source/res']
+                }
+            }
+        }
+
+        project.evaluate()
+
+        project.tasks.clean.execute()
+        project.tasks.generateReleasePlayResources.execute()
+
+        def processedTitle = new File(TestHelper.FIXTURE_WORKING_DIR,
+                'build/outputs/play/release/res/en-US/listing/title').text
+        def processedFulldescription = new File(TestHelper.FIXTURE_WORKING_DIR,
+                'build/outputs/play/release/res/en-US/listing/fulldescription').text
+
+        assertEquals(originalFulldescription, processedFulldescription)
+        assertEquals(originalTitle, processedTitle)
+    }
+
 }

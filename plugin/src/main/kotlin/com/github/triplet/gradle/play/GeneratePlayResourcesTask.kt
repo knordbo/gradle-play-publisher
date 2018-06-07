@@ -26,7 +26,12 @@ open class GeneratePlayResourcesTask : DefaultTask() {
     @Suppress("MemberVisibilityCanBePrivate", "unused") // Used by Gradle
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
-    val resSrcDirs by lazy { variant.sourceSets.map { project.file("src/${it.name}/$PLAY_PATH") } }
+    val resSrcDirs by lazy { variant.sourceSets.flatMap {
+            it.resDirectories.union(it.resourcesDirectories).map {
+                File("${it.parentFile.absolutePath}/$PLAY_PATH")
+            }
+        }.distinctBy { it.absolutePath }
+    }
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:OutputDirectory
     lateinit var resDir: File
