@@ -6,7 +6,6 @@ import com.github.triplet.gradle.play.internal.PLAY_PATH
 import com.github.triplet.gradle.play.internal.climbUpTo
 import com.github.triplet.gradle.play.internal.findClosestDir
 import com.github.triplet.gradle.play.internal.flattened
-import com.github.triplet.gradle.play.internal.orNull
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
@@ -14,16 +13,18 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import java.io.File
 
 @CacheableTask
-open class GeneratePlayResourcesTask : DefaultTask() {
+open class GenerateResourcesTask : DefaultTask() {
     @get:Internal
     lateinit var variant: ApplicationVariant
 
     @Suppress("MemberVisibilityCanBePrivate", "unused") // Used by Gradle
+    @get:SkipWhenEmpty
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
     val resSrcDirs by lazy { variant.sourceSets.flatMap {
@@ -38,23 +39,22 @@ open class GeneratePlayResourcesTask : DefaultTask() {
 
     @TaskAction
     fun generate(inputs: IncrementalTaskInputs) {
-        if (!inputs.isIncremental) {
-            validate()
-            project.delete(outputs.files)
-        }
+        validateAll()
+        if (!inputs.isIncremental) project.delete(outputs.files)
 
         project.copy { spec ->
             inputs.outOfDate {
-                it.file.orNull()?.let {
-                    spec.from(it)
-                    spec.into(it.findClosestDir().findDest())
+                val file = it.file
+                if (file.exists()) {
+                    spec.from(file)
+                    spec.into(file.findClosestDir().findDest())
                 }
             }
         }
         inputs.removed { project.delete(it.file.findDest()) }
     }
 
-    private fun validate() {
+    private fun validateAll() {
         check(resSrcDirs.all {
             it.listFiles()?.filter { it.isDirectory }?.all {
                 val isValidLocale = LocaleFileFilter.accept(it)
