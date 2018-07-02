@@ -81,11 +81,11 @@ abstract class PlayPublishPackageBase : PlayPublishTaskBase() {
 
     protected fun AndroidPublisher.Edits.handlePackageDetails(editId: String, versionCode: Int) {
         if (variant.mappingFile?.exists() == true) {
-            val mapping = FileContent(MIME_TYPE_STREAM, variant.mappingFile)
-            deobfuscationfiles()
-                    .upload(variant.applicationId, editId, versionCode, "proguard", mapping)
-                    .trackUploadProgress(progressLogger, "mapping file")
-                    .execute()
+            //val mapping = FileContent(MIME_TYPE_STREAM, variant.mappingFile)
+            //deobfuscationfiles()
+            //        .upload(variant.applicationId, editId, versionCode, "proguard", mapping)
+            //        .trackUploadProgress(progressLogger, "mapping file")
+            //        .execute()
         }
     }
 }
